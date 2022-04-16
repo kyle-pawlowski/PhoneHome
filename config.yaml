@@ -1,0 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Apr 16 19:03:23 2022
+
+@author: Pawlowski
+"""
+
+
+HOOK_PIN: 4
+LED_PIN: 26
