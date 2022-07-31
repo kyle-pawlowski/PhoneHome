@@ -25,17 +25,26 @@ def get_params(yaml_file):
 def setup():
     # Get configurable parameters from yaml file
     params = get_params('./config.yaml')
+    global hook_pin 
     hook_pin = params['HOOK_PIN']
+    global led_pin 
     led_pin = params['LED_PIN']
-    
+    print("hook_pin: " + str(hook_pin))
+    print("led_pin: " + str(led_pin))
+
     # set up GPIO pins
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(hook_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(led_pin, GPIO.IN)
+    GPIO.setup(led_pin, GPIO.OUT)
     GPIO.output(led_pin, GPIO.LOW)
 
 def rx_pickup(channel):
-    GPIO.output(led_pin, GPIO.HIGH)
+    if GPIO.input(hook_pin): # rising edge
+        GPIO.output(led_pin, GPIO.HIGH)
+        print("off the hook!")
+    else: #falling edge
+        GPIO.output(led_pin, GPIO.LOW)
+        print("on the hook!")
     
 def rx_hangup(channel):
     GPIO.output(led_pin, GPIO.LOW)
@@ -43,8 +52,13 @@ def rx_hangup(channel):
 if __name__ == "__main__":
     setup()
     
-    GPIO.add_event_detect(hook_pin, GPIO.RISING, callback=rx_pickup, bouncetime=300)
-    GPIO.add_event_detect(hook_pin, GPIO.FALLING, callback=rx_hangup, bouncetime=300)
-    
-
+    print("hook_pin: " + str(hook_pin))
+    print("led_pin: " + str(led_pin))
+    GPIO.add_event_detect(hook_pin, GPIO.BOTH, callback=rx_pickup, bouncetime=300)
+    try:
+        while(True):
+            pass
+    except:
+        GPIO.cleanup()
+    GPIO.cleanup()
     
