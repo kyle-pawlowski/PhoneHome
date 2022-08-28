@@ -56,12 +56,13 @@ def rx_hangup(channel):
     GPIO.output(led_pin, GPIO.LOW)
 
 def record_message():
-    filename = 'recorded/msg'
+    folder = 'recorded'
+    filename = 'msg'
     num = 0
-    for file in os.walk():
+    for file in os.walk(folder):
         if filename in file:
             num += 1
-    filename = filename + str(num) + '.wav'
+    filename = folder + '/' + filename + str(num) + '.wav'
     
     record_thread = subprocess.Popen('arecord -t wav -f cd filename')
 
