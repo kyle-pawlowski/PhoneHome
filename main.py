@@ -43,14 +43,14 @@ def setup():
 
 def rx_pickup(channel):
     if GPIO.input(hook_pin): # rising edge
-        GPIO.output(led_pin, GPIO.HIGH)
-        print("off the hook!")
-        record_message()
-    else: #falling edge
         GPIO.output(led_pin, GPIO.LOW)
         print("on the hook!")
         if not record_thread is None:
             record_thread.terminate()
+    else: #falling edge
+        GPIO.output(led_pin, GPIO.HIGH)
+        print("off the hook!")
+        record_message()
     
 def rx_hangup(channel):
     GPIO.output(led_pin, GPIO.LOW)
