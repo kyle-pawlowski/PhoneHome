@@ -6,11 +6,14 @@ Created on Sat Apr 16 17:23:01 2022
 """
 
 
+import subprocess
+import os
 import RPi.GPIO as GPIO
 import yaml
 
 hook_pin = 0
 led_pin = 0
+record_thread = None
 
 def get_params(yaml_file):
     params = {}
@@ -42,12 +45,27 @@ def rx_pickup(channel):
     if GPIO.input(hook_pin): # rising edge
         GPIO.output(led_pin, GPIO.HIGH)
         print("off the hook!")
+        record_message()
     else: #falling edge
         GPIO.output(led_pin, GPIO.LOW)
         print("on the hook!")
+        if not record_thread is None:
+            record_thread.terminate()
     
 def rx_hangup(channel):
     GPIO.output(led_pin, GPIO.LOW)
+
+def record_message():
+    filename = 'recorded/msg'
+    num = 0
+    for file in os.walk():
+        if filename in file:
+            num += 1
+    filename = filename + str(num) + '.wav'
+    
+    record_thread = subprocess.Popen('arecord -t wav -f cd filename')
+
+    return record_thread
     
 if __name__ == "__main__":
     setup()
@@ -56,7 +74,7 @@ if __name__ == "__main__":
     print("led_pin: " + str(led_pin))
     GPIO.add_event_detect(hook_pin, GPIO.BOTH, callback=rx_pickup, bouncetime=300)
     try:
-        while(True):
+        while True:
             pass
     except:
         GPIO.cleanup()
