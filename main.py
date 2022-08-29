@@ -8,6 +8,7 @@ Created on Sat Apr 16 17:23:01 2022
 
 import subprocess
 import os
+import signal
 import RPi.GPIO as GPIO
 import yaml
 
@@ -32,21 +33,26 @@ def setup():
     hook_pin = params['HOOK_PIN']
     global led_pin 
     led_pin = params['LED_PIN']
-    print("hook_pin: " + str(hook_pin))
-    print("led_pin: " + str(led_pin))
 
     # set up GPIO pins
+    GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(hook_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(led_pin, GPIO.OUT)
     GPIO.output(led_pin, GPIO.LOW)
 
 def rx_pickup(channel):
+    global record_thread
     if GPIO.input(hook_pin): # rising edge
         GPIO.output(led_pin, GPIO.LOW)
         print("on the hook!")
         if not record_thread is None:
+            #record_thread.stdin.close()
+            print(record_thread.pid)
+            record_thread.send_signal(signal.SIGINT)
             record_thread.terminate()
+            record_thread.terminate()
+            record_thread.wait(timeout=5)
     else: #falling edge
         GPIO.output(led_pin, GPIO.HIGH)
         print("off the hook!")
@@ -56,16 +62,18 @@ def rx_hangup(channel):
     GPIO.output(led_pin, GPIO.LOW)
 
 def record_message():
+    global record_thread
     folder = 'recorded'
     filename = 'msg'
     num = 0
-    for file in os.walk(folder):
-        if filename in file:
-            num += 1
+    for _,_,files in os.walk(folder):
+        for file in files:
+            if filename in file:
+                num += 1
     filename = folder + '/' + filename + str(num) + '.wav'
     
-    record_thread = subprocess.Popen('arecord -t wav -f cd filename')
-
+    record_thread = subprocess.Popen('arecord -t wav -f cd '+filename, stdin=subprocess.PIPE, shell=True)
+    print(record_thread.pid)
     return record_thread
     
 if __name__ == "__main__":
