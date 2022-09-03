@@ -7,6 +7,7 @@ Created on Sat Apr 16 17:23:01 2022
 
 
 import subprocess
+from multiprocessing import Process
 import os
 import signal
 import pyaudio
@@ -51,11 +52,12 @@ def rx_pickup(channel):
         GPIO.output(led_pin, GPIO.LOW)
         print("on the hook!")
         if not rx_pickup.thread_handle is None and rx_pickup.thread_handle.is_alive():
-            rx_pickup.thread_handle.close()
+            rx_pickup.thread_handle.terminate() # kills thread
+            rx_pickup.thread_handle.join() # waits for thread to finish
     else: #falling edge
         GPIO.output(led_pin, GPIO.HIGH)
         print("off the hook!")
-        rx_pickup.thread_handle = record_thread()
+        rx_pickup.thread_handle = record_thread() # starts thread
     
 def rx_hangup(channel):
     GPIO.output(led_pin, GPIO.LOW)
@@ -106,7 +108,7 @@ def record_message():
     wf.close()
 
 def record_thread():
-    thread_handle = Thread(target=record_message)
+    thread_handle = Process(target=record_message)
     thread_handle.start()
     return thread_handle
 
