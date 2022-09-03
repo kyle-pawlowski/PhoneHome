@@ -45,10 +45,12 @@ def setup():
     GPIO.output(led_pin, GPIO.LOW)
 
 def rx_pickup(channel):
+    if not hasattr(rx_pickup, "record_thread"):
+        rx_pickup.thread_handle = None
     if GPIO.input(hook_pin): # rising edge
         GPIO.output(led_pin, GPIO.LOW)
         print("on the hook!")
-        if not rx_pickup.record_thread is None and rx_pickup.record_thread.is_alive():
+        if not rx_pickup.thread_handle is None and rx_pickup.thread_handle.is_alive():
             rx_pickup.thread_handle.close()
     else: #falling edge
         GPIO.output(led_pin, GPIO.HIGH)
