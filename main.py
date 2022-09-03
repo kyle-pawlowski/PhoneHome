@@ -12,6 +12,7 @@ import os
 import signal
 import pyaudio
 import wave
+import warnings
 from threading import Thread, Event
 import RPi.GPIO as GPIO
 import yaml
@@ -84,7 +85,9 @@ def record_message():
     chunk_size = 1024
     nchannels = 1
     fs = 44100
-    p = pyaudio.PyAudio()
+    with warnings.catch_warnings(): # surpressing annoying warnings from PortAudio
+        warnings.simplefilter('ignore')
+        p = pyaudio.PyAudio()
     stream = p.open(format=sample_format,
                     channels= nchannels, 
                     rate= fs, 
