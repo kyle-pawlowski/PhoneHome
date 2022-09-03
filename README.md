@@ -18,12 +18,18 @@ There are a handful of things I bought to make this work.
 ### Required packages 
 1. PyAudio
 This code records audio using pyaudio. This can be installed through pip. 
-`python -m pip install pyaudio`
+```
+python -m pip install pyaudio
+```
 Since the Raspberry Pi is Linux based we need to install the ALSA sound API. 
-`sudo apt-get install libasound-dev`
+```
+sudo apt-get install libasound-dev
+```
 The pyaudio library also uses a C library called PortAudio. This be built from the source code on Github. 
-`git clone https://github.com/PortAudio/portaudio.git
+```
+git clone https://github.com/PortAudio/portaudio.git
 cd PortAudio
-./configure && make`
+./configure && make
+```
 
 More updates to come!
