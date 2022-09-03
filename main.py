@@ -53,8 +53,11 @@ def rx_pickup(channel):
         GPIO.output(led_pin, GPIO.LOW)
         print("on the hook!")
         if not rx_pickup.thread_handle is None and rx_pickup.thread_handle.is_alive():
+            print('Killing thread...')
             rx_pickup.thread_handle.terminate() # kills thread
+            print('Terminate called...')
             rx_pickup.thread_handle.join() # waits for thread to finish
+            print('Dead!')
     else: #falling edge
         GPIO.output(led_pin, GPIO.HIGH)
         print("off the hook!")
@@ -88,11 +91,11 @@ def record_message():
     with warnings.catch_warnings(): # surpressing annoying warnings from PortAudio
         warnings.simplefilter('ignore')
         p = pyaudio.PyAudio()
-    stream = p.open(format=sample_format,
-                    channels= nchannels, 
-                    rate= fs, 
-                    frames_per_buffer=chunk_size, 
-                    input=True)
+        stream = p.open(format=sample_format,
+                        channels= nchannels, 
+                        rate= fs, 
+                        frames_per_buffer=chunk_size, 
+                        input=True)
 
     try:
         while True:
