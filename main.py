@@ -9,6 +9,9 @@ Created on Sat Apr 16 17:23:01 2022
 import subprocess
 import os
 import signal
+import pyaudio
+import wave
+from threading import Thread, Event
 import RPi.GPIO as GPIO
 import yaml
 
@@ -42,39 +45,69 @@ def setup():
     GPIO.output(led_pin, GPIO.LOW)
 
 def rx_pickup(channel):
-    global record_thread
     if GPIO.input(hook_pin): # rising edge
         GPIO.output(led_pin, GPIO.LOW)
         print("on the hook!")
-        if not record_thread is None:
-            #record_thread.stdin.close()
-            print(record_thread.pid)
-            record_thread.send_signal(signal.SIGINT)
-            record_thread.terminate()
-            record_thread.terminate()
-            record_thread.wait(timeout=5)
+        if not rx_pickup.record_thread is None and rx_pickup.record_thread.is_alive():
+            rx_pickup.thread_handle.close()
     else: #falling edge
         GPIO.output(led_pin, GPIO.HIGH)
         print("off the hook!")
-        record_message()
+        rx_pickup.thread_handle = record_thread()
     
 def rx_hangup(channel):
     GPIO.output(led_pin, GPIO.LOW)
 
+''' this function starts recording audio and saves
+to the next available filename after a Ctrl+C signal
+is received'''
 def record_message():
-    global record_thread
     folder = 'recorded'
     filename = 'msg'
+
+    #find available file name
     num = 0
     for _,_,files in os.walk(folder):
         for file in files:
             if filename in file:
                 num += 1
     filename = folder + '/' + filename + str(num) + '.wav'
-    
-    record_thread = subprocess.Popen('arecord -t wav -f cd '+filename, stdin=subprocess.PIPE, shell=True)
-    print(record_thread.pid)
-    return record_thread
+
+    frames = [] #create list for audio data
+
+    #open pyaudio interface
+    sample_format = pyaudio.paInt16
+    chunk_size = 1024
+    nchannels = 1
+    fs = 44100
+    p = pyaudio.PyAudio()
+    stream = p.open(format=sample_format,
+                    channels= nchannels, 
+                    rate= fs, 
+                    frames_per_buffer=chunk_size, 
+                    input=True)
+
+    try:
+        while True:
+            data = stream.read(chunk_size)
+            frames.append(data)
+    except:
+        stream.stop_stream()
+        stream.close()
+        p.terminate()
+
+    wf = wave.open(filename, 'wb')
+    wf.setnchannels(nchannels)
+    wf.setsampwidth(p.get_sample_size(sample_format))
+    wf.setframerate(fs)
+    wf.writeframes(b''.join(frames))
+    wf.close()
+
+def record_thread():
+    thread_handle = Thread(target=record_message)
+    thread_handle.start()
+    return thread_handle
+
     
 if __name__ == "__main__":
     setup()
