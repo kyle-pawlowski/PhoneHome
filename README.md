@@ -14,4 +14,16 @@ There are a handful of things I bought to make this work.
 ![Picture of RJ9 to USB Adapter](./images/adapter_pic.jpg)
   * You need something to take the RJ9 connector from the handset and do all of A/D and D/A conversions. I figured this was the easiest way. You could also use the analog functionality of the Raspberry Pi, but I've heard that isn't great because it uses the PWM function of the Pi and smooths it out to generate analog signals. Dedicated hardware might be better. 
 
+## Software 
+### Required packages 
+1. PyAudio
+This code records audio using pyaudio. This can be installed through pip. 
+`python -m pip install pyaudio`
+Since the Raspberry Pi is Linux based we need to install the ALSA sound API. 
+`sudo apt-get install libasound-dev`
+The pyaudio library also uses a C library called PortAudio. This be built from the source code on Github. 
+`git clone https://github.com/PortAudio/portaudio.git
+cd PortAudio
+./configure && make`
+
 More updates to come!
