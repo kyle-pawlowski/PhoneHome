@@ -7,7 +7,7 @@ Created on Sat Apr 16 17:23:01 2022
 
 
 import subprocess
-from multiprocessing import Process
+from multiprocessing import Process, Event
 import os
 import signal
 import pyaudio
@@ -47,18 +47,27 @@ def setup():
     GPIO.output(led_pin, GPIO.LOW)
 
 def rx_pickup(channel):
-    if not hasattr(rx_pickup, "record_thread"):
-        rx_pickup.thread_handle = None
     if GPIO.input(hook_pin): # rising edge
         GPIO.output(led_pin, GPIO.LOW)
         print("on the hook!")
-        if not rx_pickup.thread_handle is None and rx_pickup.thread_handle.is_alive():
-            rx_pickup.thread_handle.terminate() # kills thread
-            rx_pickup.thread_handle.join() # waits for thread to finish
+        try:
+            if rx_pickup.thread_handle.is_alive():
+                print(rx_pickup.stop_event)
+                print('Killing thread...')
+                rx_pickup.stop_event.set()
+                print('Terminate sent...')
+                rx_pickup.thread_handle.join() # waits for thread to finish
+                print('Dead!')
+                stop_event.clear()
+        except AttributeError:
+            pass 
     else: #falling edge
         GPIO.output(led_pin, GPIO.HIGH)
         print("off the hook!")
-        rx_pickup.thread_handle = record_thread() # starts thread
+        rx_pickup.stop_event = Event()
+        rx_pickup.stop_event.clear()
+        print(rx_pickup.stop_event)
+        rx_pickup.thread_handle = record_thread(rx_pickup.stop_event) # starts thread
     
 def rx_hangup(channel):
     GPIO.output(led_pin, GPIO.LOW)
@@ -66,7 +75,7 @@ def rx_hangup(channel):
 ''' this function starts recording audio and saves
 to the next available filename after a Ctrl+C signal
 is received'''
-def record_message():
+def record_message(stop_event):
     folder = 'recorded'
     filename = 'msg'
 
@@ -85,24 +94,23 @@ def record_message():
     chunk_size = 1024
     nchannels = 1
     fs = 44100
-    with warnings.catch_warnings(): # surpressing annoying warnings from PortAudio
-        warnings.simplefilter('ignore')
-        p = pyaudio.PyAudio()
+    p = pyaudio.PyAudio()
     stream = p.open(format=sample_format,
                     channels= nchannels, 
                     rate= fs, 
                     frames_per_buffer=chunk_size, 
                     input=True)
+    print(stop_event)
+    while not stop_event.is_set():
+        data = stream.read(chunk_size)
+        frames.append(data)
+    
+    print('Wait! No! Stop! AAAGGHH!')
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
 
-    try:
-        while True:
-            data = stream.read(chunk_size)
-            frames.append(data)
-    except:
-        stream.stop_stream()
-        stream.close()
-        p.terminate()
-
+    print('I\'m not dead yet!')
     wf = wave.open(filename, 'wb')
     wf.setnchannels(nchannels)
     wf.setsampwidth(p.get_sample_size(sample_format))
@@ -110,8 +118,8 @@ def record_message():
     wf.writeframes(b''.join(frames))
     wf.close()
 
-def record_thread():
-    thread_handle = Process(target=record_message)
+def record_thread(stop_event):
+    thread_handle = Process(target=record_message, args=(stop_event,))
     thread_handle.start()
     return thread_handle
 
@@ -121,6 +129,7 @@ if __name__ == "__main__":
     
     print("hook_pin: " + str(hook_pin))
     print("led_pin: " + str(led_pin))
+    rx_pickup.thread_handle = None
     GPIO.add_event_detect(hook_pin, GPIO.BOTH, callback=rx_pickup, bouncetime=300)
     try:
         while True:
