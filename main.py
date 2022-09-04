@@ -64,6 +64,7 @@ def rx_pickup(channel):
         rx_pickup.stop_event = Event()
         rx_pickup.stop_event.clear()
         play_file('test_answer.wav')
+        print('finished playing audio!')
         rx_pickup.thread_handle = record_thread(rx_pickup.stop_event) # starts thread
     
 def rx_hangup(channel):
@@ -97,7 +98,7 @@ def record_message(stop_event):
                     rate= fs, 
                     frames_per_buffer=chunk_size, 
                     input=True)
-    print(stop_event)
+    
     while not stop_event.is_set():
         data = stream.read(chunk_size)
         frames.append(data)
@@ -114,8 +115,8 @@ def record_message(stop_event):
     wf.close()
 
 def play_file(filename):
-    '''# Set chunk size of 1024 samples per data frame
-    chunk = 1024  
+    # Set chunk size of 1024 samples per data frame
+    chunk = 65572  
 
     # Open the sound file 
     wf = wave.open(filename, 'rb')
@@ -127,21 +128,21 @@ def play_file(filename):
     # 'output = True' indicates that the sound will be played rather than recorded
     stream = p.open(format = p.get_format_from_width(wf.getsampwidth()),
                     channels = wf.getnchannels(),
-                    rate = wf.getframerate(),
+                    rate = 44100,
+                    frames_per_buffer = chunk,
                     output = True)
 
     # Read data in chunks
     data = wf.readframes(chunk)
 
     # Play the sound by writing the audio data to the stream
-    while data != '':
+    while len(data) > 0 and data != '':
         stream.write(data)
         data = wf.readframes(chunk)
 
     # Close and terminate the stream
     stream.close()
-    p.terminate()'''
-    playsound(filename)
+    p.terminate()
 
 
 def record_thread(stop_event):
