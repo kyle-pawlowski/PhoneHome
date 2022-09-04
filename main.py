@@ -62,7 +62,7 @@ def rx_pickup(channel):
         print("off the hook!")
         rx_pickup.stop_event = Event()
         rx_pickup.stop_event.clear()
-        print(rx_pickup.stop_event)
+        play_file('test_answer.wav')
         rx_pickup.thread_handle = record_thread(rx_pickup.stop_event) # starts thread
     
 def rx_hangup(channel):
@@ -112,6 +112,35 @@ def record_message(stop_event):
     wf.writeframes(b''.join(frames))
     wf.close()
 
+def play_file(filename):
+    # Set chunk size of 1024 samples per data frame
+    chunk = 1024  
+
+    # Open the sound file 
+    wf = wave.open(filename, 'rb')
+
+    # Create an interface to PortAudio
+    p = pyaudio.PyAudio()
+
+    # Open a .Stream object to write the WAV file to
+    # 'output = True' indicates that the sound will be played rather than recorded
+    stream = p.open(format = p.get_format_from_width(wf.getsampwidth()),
+                    channels = wf.getnchannels(),
+                    rate = wf.getframerate(),
+                    output = True)
+
+    # Read data in chunks
+    data = wf.readframes(chunk)
+
+    # Play the sound by writing the audio data to the stream
+    while data != '':
+        stream.write(data)
+        data = wf.readframes(chunk)
+
+    # Close and terminate the stream
+    stream.close()
+    p.terminate()
+
 def record_thread(stop_event):
     thread_handle = Process(target=record_message, args=(stop_event,))
     thread_handle.start()
@@ -120,7 +149,7 @@ def record_thread(stop_event):
     
 if __name__ == "__main__":
     setup()
-    
+
     rx_pickup.thread_handle = None
     GPIO.add_event_detect(hook_pin, GPIO.BOTH, callback=rx_pickup, bouncetime=300)
     try:
