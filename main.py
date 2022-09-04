@@ -16,7 +16,6 @@ import warnings
 from threading import Thread
 import RPi.GPIO as GPIO
 import yaml
-from playsound import playsound
 
 hook_pin = 0
 led_pin = 0
