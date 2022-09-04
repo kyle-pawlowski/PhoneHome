@@ -63,8 +63,6 @@ def rx_pickup(channel):
         print("off the hook!")
         rx_pickup.stop_event = Event()
         rx_pickup.stop_event.clear()
-        play_file('test_answer.wav')
-        print('finished playing audio!')
         rx_pickup.thread_handle = record_thread(rx_pickup.stop_event) # starts thread
     
 def rx_hangup(channel):
@@ -74,6 +72,8 @@ def rx_hangup(channel):
 to the next available filename after a Ctrl+C signal
 is received'''
 def record_message(stop_event):
+    play_file('test_answer.wav')
+    print('finished playing audio!')
     folder = 'recorded'
     filename = 'msg'
 
