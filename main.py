@@ -13,7 +13,7 @@ import signal
 import pyaudio
 import wave
 import warnings
-from threading import Thread, Event
+from threading import Thread
 import RPi.GPIO as GPIO
 import yaml
 
