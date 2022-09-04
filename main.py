@@ -10,7 +10,6 @@ import subprocess
 from multiprocessing import Process, Event
 import os
 import signal
-from ctypes import cdll
 import pyaudio
 import wave
 import warnings
@@ -68,11 +67,6 @@ def rx_pickup(channel):
 def rx_hangup(channel):
     GPIO.output(led_pin, GPIO.LOW)
 
-
-
-def py_error_handler(filename, line, function, err, fmt):
-    pass
-
 ''' this function starts recording audio and saves
 to the next available filename after a Ctrl+C signal
 is received'''
@@ -97,12 +91,6 @@ def record_message(stop_event):
     chunk_size = 1024
     nchannels = 1
     fs = 44100
-
-    # suppression for pyaudio warnings
-    ERROR_HANDLER_FUNC = CFUNCTYPE(None, c_char_p, c_int, c_char_p, c_int, c_char_p)
-    c_error_handler = ERROR_HANDLER_FUNC(py_error_handler)
-    asound = cdll.LoadLibrary('libasound.so')
-    asound.snd_lib_error_set_handler(c_error_handler)
 
     # open pyaudio interface
     p = pyaudio.PyAudio()
@@ -133,12 +121,6 @@ def play_file(filename):
 
     # Open the sound file 
     wf = wave.open(filename, 'rb')
-
-    # suppression for pyaudio warnings
-    ERROR_HANDLER_FUNC = CFUNCTYPE(None, c_char_p, c_int, c_char_p, c_int, c_char_p)
-    c_error_handler = ERROR_HANDLER_FUNC(py_error_handler)
-    asound = cdll.LoadLibrary('libasound.so')
-    asound.snd_lib_error_set_handler(c_error_handler)
 
     # Create an interface to PortAudio
     p = pyaudio.PyAudio()
