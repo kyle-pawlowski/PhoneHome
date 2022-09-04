@@ -52,12 +52,8 @@ def rx_pickup(channel):
         print("on the hook!")
         try:
             if rx_pickup.thread_handle.is_alive():
-                print(rx_pickup.stop_event)
-                print('Killing thread...')
                 rx_pickup.stop_event.set()
-                print('Terminate sent...')
                 rx_pickup.thread_handle.join() # waits for thread to finish
-                print('Dead!')
                 rx_pickup.stop_event.clear()
         except AttributeError:
             pass 
@@ -105,12 +101,10 @@ def record_message(stop_event):
         data = stream.read(chunk_size)
         frames.append(data)
     
-    print('Wait! No! Stop! AAAGGHH!')
     stream.stop_stream()
     stream.close()
     p.terminate()
 
-    print('I\'m not dead yet!')
     wf = wave.open(filename, 'wb')
     wf.setnchannels(nchannels)
     wf.setsampwidth(p.get_sample_size(sample_format))
@@ -127,8 +121,6 @@ def record_thread(stop_event):
 if __name__ == "__main__":
     setup()
     
-    print("hook_pin: " + str(hook_pin))
-    print("led_pin: " + str(led_pin))
     rx_pickup.thread_handle = None
     GPIO.add_event_detect(hook_pin, GPIO.BOTH, callback=rx_pickup, bouncetime=300)
     try:
