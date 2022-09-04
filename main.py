@@ -10,6 +10,7 @@ import subprocess
 from multiprocessing import Process, Event
 import os
 import signal
+from ctypes import cdll
 import pyaudio
 import wave
 import warnings
