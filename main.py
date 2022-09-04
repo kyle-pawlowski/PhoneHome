@@ -58,7 +58,7 @@ def rx_pickup(channel):
                 print('Terminate sent...')
                 rx_pickup.thread_handle.join() # waits for thread to finish
                 print('Dead!')
-                stop_event.clear()
+                rx_pickup.stop_event.clear()
         except AttributeError:
             pass 
     else: #falling edge
