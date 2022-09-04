@@ -16,6 +16,7 @@ import warnings
 from threading import Thread
 import RPi.GPIO as GPIO
 import yaml
+from playsound import playsound
 
 hook_pin = 0
 led_pin = 0
@@ -113,7 +114,7 @@ def record_message(stop_event):
     wf.close()
 
 def play_file(filename):
-    # Set chunk size of 1024 samples per data frame
+    '''# Set chunk size of 1024 samples per data frame
     chunk = 1024  
 
     # Open the sound file 
@@ -139,7 +140,9 @@ def play_file(filename):
 
     # Close and terminate the stream
     stream.close()
-    p.terminate()
+    p.terminate()'''
+    playsound(filename)
+
 
 def record_thread(stop_event):
     thread_handle = Process(target=record_message, args=(stop_event,))
