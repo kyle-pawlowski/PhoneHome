@@ -60,9 +60,10 @@ def rx_pickup(channel):
     else: #falling edge
         GPIO.output(led_pin, GPIO.HIGH)
         print("off the hook!")
-        rx_pickup.stop_event = Event()
-        rx_pickup.stop_event.clear()
-        rx_pickup.thread_handle = record_thread(rx_pickup.stop_event) # starts thread
+        if not hasattr(rx_pickup, 'thread_handle') or not rx_pickup.thread_handle.is_alive():
+            rx_pickup.stop_event = Event()
+            rx_pickup.stop_event.clear()
+            rx_pickup.thread_handle = record_thread(rx_pickup.stop_event) # starts thread
     
 def rx_hangup(channel):
     GPIO.output(led_pin, GPIO.LOW)
@@ -156,7 +157,7 @@ if __name__ == "__main__":
     setup()
 
     rx_pickup.thread_handle = None
-    GPIO.add_event_detect(hook_pin, GPIO.BOTH, callback=rx_pickup, bouncetime=300)
+    GPIO.add_event_detect(hook_pin, GPIO.BOTH, callback=rx_pickup, bouncetime=600)
     try:
         while True:
             pass
