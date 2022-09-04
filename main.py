@@ -86,11 +86,17 @@ def record_message(stop_event):
 
     frames = [] #create list for audio data
 
-    #open pyaudio interface
+    #pyaudio settings
     sample_format = pyaudio.paInt16
     chunk_size = 1024
     nchannels = 1
     fs = 44100
+
+    # suppression for pyaudio warnings
+    asound = cdll.LoadLibrary('libasound.so')
+    asound.snd_lib_error_set_handler(None)
+
+    # open pyaudio interface
     p = pyaudio.PyAudio()
     stream = p.open(format=sample_format,
                     channels= nchannels, 
@@ -119,6 +125,10 @@ def play_file(filename):
 
     # Open the sound file 
     wf = wave.open(filename, 'rb')
+
+    # suppression for pyaudio warnings
+    asound = cdll.LoadLibrary('libasound.so')
+    asound.snd_lib_error_set_handler(None)
 
     # Create an interface to PortAudio
     p = pyaudio.PyAudio()
