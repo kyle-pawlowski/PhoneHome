@@ -46,6 +46,12 @@ def setup():
     GPIO.setup(led_pin, GPIO.OUT)
     GPIO.output(led_pin, GPIO.LOW)
 
+    try:
+        rx_pickup.thread_handle.terminate()
+        rx_pickup.thread_handle.join()
+    except AttributeError:
+        pass
+
 def rx_pickup(channel):
     if GPIO.input(hook_pin): # rising edge
         GPIO.output(led_pin, GPIO.LOW)
@@ -60,7 +66,9 @@ def rx_pickup(channel):
     else: #falling edge
         GPIO.output(led_pin, GPIO.HIGH)
         print("off the hook!")
-        if not hasattr(rx_pickup, 'thread_handle') or not rx_pickup.thread_handle.is_alive():
+        print('Has attribute: ' + str(hasattr(rx_pickup,'thread_handle')))
+        if (not hasattr(rx_pickup, 'thread_handle')) or rx_pickup.thread_handle == None or (not rx_pickup.thread_handle.is_alive()):
+            print('Starting thread...')
             rx_pickup.stop_event = Event()
             rx_pickup.stop_event.clear()
             rx_pickup.thread_handle = record_thread(rx_pickup.stop_event) # starts thread
